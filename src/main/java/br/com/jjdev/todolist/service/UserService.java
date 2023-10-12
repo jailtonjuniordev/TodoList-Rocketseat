@@ -1,6 +1,7 @@
 package br.com.jjdev.todolist.service;
 
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.jjdev.todolist.domain.user.User;
 import br.com.jjdev.todolist.domain.user.UserType;
 import br.com.jjdev.todolist.dto.UpdateUserDTO;
@@ -28,10 +29,15 @@ public class UserService {
 
 
     public void createUser(UserDTO user) throws Exception {
+
         userRepository.save(User.builder()
                 .name(user.name())
                 .email(user.email())
-                .password(user.password())
+                .password(BCrypt
+                        .withDefaults()
+                        .hashToString(12, user
+                                .password()
+                                .toCharArray()))
                 .userType(user.userType() == null ? UserType.USER : user.userType())
                 .build());
     }
@@ -52,7 +58,7 @@ public class UserService {
         this.userRepository.save(editedUser);
     }
 
-    private void updateSelected(User editedUser, UpdateUserDTO user){
+    private void updateSelected(User editedUser, UpdateUserDTO user) {
         if (user.name() != null) {
             editedUser.setName(user.name());
         }
@@ -70,6 +76,7 @@ public class UserService {
         }
 
     }
+
     public Page<User> searchProducts(
             UUID id,
             String name,
