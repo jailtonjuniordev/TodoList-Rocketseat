@@ -4,6 +4,8 @@ import br.com.jjdev.todolist.domain.todo.ToDo;
 import br.com.jjdev.todolist.domain.todo.ToDoStatus;
 import br.com.jjdev.todolist.domain.user.User;
 import br.com.jjdev.todolist.dto.ToDoDTO;
+import br.com.jjdev.todolist.dto.UpdateToDoDTO;
+import br.com.jjdev.todolist.dto.UpdateUserDTO;
 import br.com.jjdev.todolist.repository.ToDoRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +36,36 @@ public class ToDoService {
                 .user(user)
                 .build());
     }
+
+    public ToDo getToDoById(UUID id) throws Exception {
+        return this.todoRepository.findById(id).orElseThrow(() -> new Exception("Could not find todo"));
+    }
+
+    public void deleteToDo(UUID id) throws Exception {
+        this.todoRepository.deleteById(getToDoById(id).getId());
+    }
+
+    public void updateToDo(UUID id, UpdateToDoDTO todo) throws Exception {
+        ToDo editedToDo = this.getToDoById(id);
+
+        updateSelected(editedToDo, todo);
+
+        this.todoRepository.save(editedToDo);
+    }
+
+    private void updateSelected(ToDo editedToDo, UpdateToDoDTO todo){
+        if (todo.name() != null) {
+            editedToDo.setName(todo.name());
+        }
+
+        if (todo.description() != null) {
+            editedToDo.setDescription(todo.description());
+        }
+
+        if (todo.status() != null) {
+            editedToDo.setStatus(todo.status());
+        }
+    }
+
 
 }
