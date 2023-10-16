@@ -5,12 +5,14 @@ import br.com.jjdev.todolist.domain.todo.ToDoStatus;
 import br.com.jjdev.todolist.domain.user.User;
 import br.com.jjdev.todolist.dto.ToDoDTO;
 import br.com.jjdev.todolist.dto.UpdateToDoDTO;
-import br.com.jjdev.todolist.dto.UpdateUserDTO;
 import br.com.jjdev.todolist.repository.ToDoRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,15 +25,15 @@ public class ToDoService {
 
     public void createToDo(ToDoDTO toDo) throws Exception {
 
-        User user = userService.getUserById(UUID.fromString(toDo.user_id()));
+        User user = userService.getUserById(UUID.fromString(toDo.getUser_id()));
 
         if (user == null) {
             throw new Exception("User not found!");
         }
 
         todoRepository.save(ToDo.builder()
-                .name(toDo.name())
-                .description(toDo.description())
+                .name(toDo.getName())
+                .description(toDo.getDescription())
                 .status(ToDoStatus.NOT_STARTED)
                 .user(user)
                 .build());
@@ -39,6 +41,12 @@ public class ToDoService {
 
     public ToDo getToDoById(UUID id) throws Exception {
         return this.todoRepository.findById(id).orElseThrow(() -> new Exception("Could not find todo"));
+    }
+
+    public Page<ToDo> searchTodos(UUID id, Pageable pageable) throws Exception {
+        Page<ToDo> todos = this.todoRepository.findAll(pageable);
+
+        return todos;
     }
 
     public void deleteToDo(UUID id) throws Exception {

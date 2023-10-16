@@ -1,21 +1,22 @@
 package br.com.jjdev.todolist.dto;
 
-import br.com.jjdev.todolist.domain.todo.ToDoStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.UUID;
+import lombok.*;
 
-public record ToDoDTO(
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class ToDoDTO {
+        @NotBlank
+        @NotNull
+        private String name;
 
         @NotBlank
         @NotNull
-        String name,
-        @NotBlank
-        @NotNull
-        String description,
-        @NotBlank
-        @NotNull
-        @UUID
-        String user_id
-) {
+        private String description;
+
+        private String user_id;
 }

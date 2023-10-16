@@ -2,7 +2,7 @@ package br.com.jjdev.todolist.domain.todo;
 
 
 import br.com.jjdev.todolist.domain.user.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,6 +33,6 @@ public class ToDo {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnoreProperties("toDos")
     private User user;
 }
