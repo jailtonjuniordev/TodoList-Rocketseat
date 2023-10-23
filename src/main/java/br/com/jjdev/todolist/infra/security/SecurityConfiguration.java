@@ -1,6 +1,7 @@
 package br.com.jjdev.todolist.infra.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,9 +30,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users/").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/todos/").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/todos/").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/users/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/todos/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
