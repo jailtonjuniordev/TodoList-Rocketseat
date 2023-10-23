@@ -7,12 +7,18 @@ import br.com.jjdev.todolist.dto.ToDoDTO;
 import br.com.jjdev.todolist.dto.UpdateToDoDTO;
 import br.com.jjdev.todolist.repository.ToDoRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -43,17 +49,31 @@ public class ToDoService {
         return this.todoRepository.findById(id).orElseThrow(() -> new Exception("Could not find todo"));
     }
 
-    public Page<ToDo> searchTodos(UUID id, Pageable pageable) throws Exception {
-        Page<ToDo> todos = this.todoRepository.findAll(pageable);
+    public Page<ToDo> searchTodos(UUID id, Pageable pageable, HttpServletRequest request,  Authentication auth) throws Exception {
 
-        return todos;
+        List<ToDo> helper = this.userService.getUserById(UUID.fromString(request.getAttribute("user_id").toString())).getToDos();
+
+        return new PageImpl<>(helper, pageable, helper.size());
     }
 
-    public void deleteToDo(UUID id) throws Exception {
+    public void deleteToDo(UUID id, HttpServletRequest request, Authentication auth) throws Exception {
+
+        User userDetails = (User) auth.getPrincipal();
+
+        if((!(Objects.equals(request.getAttribute("role").toString(), "ADMIN"))) && !(userDetails.getId().equals(this.getToDoById(id).getUser().getId()))) {
+            throw new Exception("Acesso negado: Você não tem permissão para mexer esse ToDo.");
+        }
+
         this.todoRepository.deleteById(getToDoById(id).getId());
     }
 
-    public void updateToDo(UUID id, UpdateToDoDTO todo) throws Exception {
+    public void updateToDo(UUID id, UpdateToDoDTO todo, HttpServletRequest request, Authentication auth) throws Exception {
+        User userDetails = (User) auth.getPrincipal();
+
+        if((!(Objects.equals(request.getAttribute("role").toString(), "ADMIN"))) && !(userDetails.getId().equals(this.getToDoById(id).getUser().getId()))) {
+            throw new Exception("Acesso negado: Você não tem permissão para mexer esse ToDo.");
+        }
+
         ToDo editedToDo = this.getToDoById(id);
 
         updateSelected(editedToDo, todo);
