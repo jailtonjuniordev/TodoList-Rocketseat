@@ -5,5 +5,4 @@ public enum ToDoStatus {
     IN_PROGRESS,
     COMPLETED,
     CANCELED
-
 }

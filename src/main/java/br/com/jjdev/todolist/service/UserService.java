@@ -13,6 +13,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -46,15 +47,22 @@ public class UserService {
         return this.userRepository.findById(id).orElseThrow(() -> new Exception("Could not find user"));
     }
 
-    public User getUserByEmail(String email){
+    public User getUserByEmail(String email) {
         return this.userRepository.findByEmail(email);
     }
 
-    public void deleteUser(UUID id) throws Exception {
+    public void deleteUser(UUID id, HttpServletRequest request) throws Exception {
+        if ((!(Objects.equals(request.getAttribute("role").toString(), "ADMIN"))) && (!(id.toString().isEmpty())) && (!(Objects.equals(request.getAttribute("user_id").toString(), id.toString())))) {
+            throw new Exception("Forbidden");
+        }
         userRepository.deleteById(getUserById(id).getId());
     }
 
-    public void updateUser(UUID id, UpdateUserDTO user) throws Exception {
+    public void updateUser(UUID id, UpdateUserDTO user, HttpServletRequest request) throws Exception {
+        if ((!(Objects.equals(request.getAttribute("role").toString(), "ADMIN"))) && (!(id.toString().isEmpty())) && (!(Objects.equals(request.getAttribute("user_id").toString(), id.toString())))) {
+            throw new Exception("Forbidden");
+        }
+
         User editedUser = this.getUserById(id);
 
         updateSelected(editedUser, user);
@@ -81,12 +89,13 @@ public class UserService {
 
     }
 
-    public Page<User> searchProducts(
+    public Page<User> searchUsers(
             UUID id,
             String name,
             String email,
             UserType userType,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) throws Exception {
         Map<String, Object> filters = this.createFiltersMap(
                 id,
@@ -95,6 +104,12 @@ public class UserService {
                 userType);
 
         CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+
+        System.out.println(Objects.equals(request.getAttribute("role").toString(), "ADMIN"));
+
+        if ((!(Objects.equals(request.getAttribute("role").toString(), "ADMIN"))) && (!(id.toString().isEmpty())) && (!(Objects.equals(request.getAttribute("user_id").toString(), id.toString())))) {
+            throw new Exception("Forbidden");
+        }
 
         List<User> users = this.searchForUsers(filters, pageable, cb);
         Long totalItems = this.countUsers(filters, cb);
@@ -124,7 +139,11 @@ public class UserService {
         List<Predicate> predicates = new ArrayList<>();
         filters.forEach((key, value) -> {
             if (value != null) {
-                predicates.add(cb.like(root.get(key), "%" + value + "%"));
+                if ("id".equals(key)) {
+                    predicates.add(cb.equal(root.get(key), value));
+                } else {
+                    predicates.add(cb.like(root.get(key), "%" + value + "%"));
+                }
             }
         });
         return predicates;

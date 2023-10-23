@@ -1,6 +1,7 @@
 package br.com.jjdev.todolist.domain.user;
 
 import br.com.jjdev.todolist.domain.todo.ToDo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode
 @Builder
 @Table(name = "users")
 public class User implements UserDetails {
@@ -39,7 +40,7 @@ public class User implements UserDetails {
     private UserType userType;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    @JsonManagedReference
+    @JsonIgnoreProperties("user")
     private List<ToDo> toDos;
 
     @Override
